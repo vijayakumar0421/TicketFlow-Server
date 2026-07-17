@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE `ticket` MODIFY `attachment` LONGTEXT NULL;
+ALTER TABLE `Ticket` MODIFY `attachment` LONGTEXT NULL;
