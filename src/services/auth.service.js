@@ -5,7 +5,6 @@ const { generateToken } = require("../config/jwt");
 const login = async (email, password) => {
   console.log("========== LOGIN START ==========");
   console.log("Email:", email);
-  console.log("✅ DATABASE_URL loaded");
 
   try {
     const user = await prisma.user.findUnique({
@@ -13,9 +12,9 @@ const login = async (email, password) => {
         email,
       },
       include: {
-        department: {
+        Department: {
           include: {
-            organization: true,
+            Organization: true,
           },
         },
       },
@@ -46,14 +45,14 @@ const login = async (email, password) => {
     return {
       token,
       user: {
-      id: user.id,
-      employeeId: user.employeeId,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      department: user.department?.name,
-      organization: user.department?.organization?.name,
-    },
+        id: user.id,
+        employeeId: user.employeeId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.Department?.name,
+        organization: user.Department?.Organization?.name,
+      },
     };
   } catch (err) {
     console.error("========== LOGIN ERROR ==========");
@@ -70,9 +69,9 @@ const getCurrentUser = async (userId) => {
         id: userId,
       },
       include: {
-        department: {
+        Department: {
           include: {
-            organization: true,
+            Organization: true,
           },
         },
       },
@@ -88,8 +87,8 @@ const getCurrentUser = async (userId) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      department: user.department?.name,
-      organization: user.department?.organization?.name,
+      department: user.Department?.name,
+      organization: user.Department?.Organization?.name,
     };
   } catch (err) {
     console.error("GET CURRENT USER ERROR:", err);
