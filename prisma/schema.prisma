@@ -7,192 +7,141 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model category {
+model Category {
   id             Int          @id @default(autoincrement())
   organizationId Int
   name           String
   description    String?
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   organization @relation(fields: [organizationId], references: [id], map: "Category_organizationId_fkey")
-  ticket         ticket[]
+  updatedAt      DateTime
+  Organization   Organization @relation(fields: [organizationId], references: [id])
+  Ticket         Ticket[]
 
-  @@unique([organizationId, name], map: "Category_organizationId_name_key")
+  @@unique([organizationId, name])
 }
 
-model department {
+model Department {
   id             Int          @id @default(autoincrement())
   organizationId Int
   name           String
   description    String?
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   organization @relation(fields: [organizationId], references: [id], map: "Department_organizationId_fkey")
-  user           user[]
+  updatedAt      DateTime
+  Organization   Organization @relation(fields: [organizationId], references: [id])
+  User           User[]
 
-  @@unique([organizationId, name], map: "Department_organizationId_name_key")
+  @@unique([organizationId, name])
 }
 
-model organization {
+model Organization {
   id          Int          @id @default(autoincrement())
-  name        String       @unique(map: "Organization_name_key")
-  code        String       @unique(map: "Organization_code_key")
+  name        String       @unique
+  code        String       @unique
   description String?
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  category    category[]
-  department  department[]
+  updatedAt   DateTime
+  Category    Category[]
+  Department  Department[]
 }
 
-model slapolicy {
-  id                    Int      @id @default(autoincrement())
-  firstResponseHours    Int
-  resolutionHours       Int
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model ticket {
+model Ticket {
   id                             Int             @id @default(autoincrement())
-  ticketNumber                   String          @unique(map: "Ticket_ticketNumber_key")
-  title                          String @db.VarChar(100)
-  description                    String @db.LongText
+  ticketNumber                   String          @unique
+  title                          String
+  description                    String
   categoryId                     Int
   employeeId                     Int
   assignedToId                   Int?
-  priority                       ticket_priority
-  status                         ticket_status   @default(NEW)
-
-  resolutionSummary              String?         @db.LongText
-  timeSpentMinutes               Int?
-  firstResponseTargetHours       Int?
-  resolutionTargetHours          Int?
-
-  firstResponseDueAt             DateTime?
-  firstResponseAt                DateTime?
-
-  resolutionDueAt                DateTime?
-  resolvedAt                     DateTime?
-
+  priority                       Ticket_priority
+  status                         Ticket_status   @default(NEW)
+  attachment                     String?         @db.LongText
   createdAt                      DateTime        @default(now())
-  updatedAt                      DateTime        @updatedAt
-  user_ticket_assignedToIdTouser user?           @relation("ticket_assignedToIdTouser", fields: [assignedToId], references: [id], map: "Ticket_assignedToId_fkey")
-  category                       category        @relation(fields: [categoryId], references: [id], map: "Ticket_categoryId_fkey")
-  user_ticket_employeeIdTouser   user            @relation("ticket_employeeIdTouser", fields: [employeeId], references: [id], map: "Ticket_employeeId_fkey")
-  tickethistory                  tickethistory[]
-  comments                       ticketcomment[]
-  attachments                    ticketattachment[]
+  updatedAt                      DateTime
+  User_Ticket_assignedToIdToUser User?           @relation("Ticket_assignedToIdToUser", fields: [assignedToId], references: [id])
+  Category                       Category        @relation(fields: [categoryId], references: [id])
+  User_Ticket_employeeIdToUser   User            @relation("Ticket_employeeIdToUser", fields: [employeeId], references: [id])
+  TicketHistory                  TicketHistory[]
 
   @@index([assignedToId], map: "Ticket_assignedToId_fkey")
   @@index([categoryId], map: "Ticket_categoryId_fkey")
   @@index([employeeId], map: "Ticket_employeeId_fkey")
 }
 
-model tickethistory {
+model TicketHistory {
   id          Int                     @id @default(autoincrement())
   ticketId    Int
   updatedById Int
-  oldStatus   tickethistory_oldStatus
-  newStatus   tickethistory_newStatus
+  remarks     String?
+  oldStatus   TicketHistory_oldStatus
+  newStatus   TicketHistory_newStatus
   createdAt   DateTime                @default(now())
-  ticket      ticket                  @relation(fields: [ticketId], references: [id], map: "TicketHistory_ticketId_fkey")
-  user        user                    @relation(fields: [updatedById], references: [id], map: "TicketHistory_updatedById_fkey")
+  Ticket      Ticket                  @relation(fields: [ticketId], references: [id])
+  User        User                    @relation(fields: [updatedById], references: [id])
 
   @@index([ticketId], map: "TicketHistory_ticketId_fkey")
   @@index([updatedById], map: "TicketHistory_updatedById_fkey")
 }
 
-model ticketcomment {
-  id        Int      @id @default(autoincrement())
-  ticketId  Int
-  userId    Int
-  comment   String   @db.LongText
-  createdAt DateTime @default(now())
-
-  ticket ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user   user   @relation(fields: [userId], references: [id])
-
-  @@index([ticketId])
-}
-
-model ticketattachment {
-  id        Int      @id @default(autoincrement())
-  ticketId  Int
-  fileName  String
-  fileType  String
-  fileData  String   @db.LongText
-  createdAt DateTime @default(now())
-
-  ticket ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-
-  @@index([ticketId])
-}
-
-model user {
+model User {
   id                               Int             @id @default(autoincrement())
-  employeeId                       String          @unique(map: "User_employeeId_key")
+  employeeId                       String          @unique
   name                             String
-  email                            String          @unique(map: "User_email_key")
+  email                            String          @unique
   password                         String
-  role                             user_role
-  status                           user_status     @default(ACTIVE)
+  role                             User_role
+  status                           User_status     @default(ACTIVE)
   departmentId                     Int
   createdAt                        DateTime        @default(now())
-  updatedAt                        DateTime        @updatedAt
-  ticket_ticket_assignedToIdTouser ticket[]        @relation("ticket_assignedToIdTouser")
-  ticket_ticket_employeeIdTouser   ticket[]        @relation("ticket_employeeIdTouser")
-  tickethistory                    tickethistory[]
-  ticketComments                   ticketcomment[]
-  department                       department      @relation(fields: [departmentId], references: [id], map: "User_departmentId_fkey")
+  updatedAt                        DateTime
+  Ticket_Ticket_assignedToIdToUser Ticket[]        @relation("Ticket_assignedToIdToUser")
+  Ticket_Ticket_employeeIdToUser   Ticket[]        @relation("Ticket_employeeIdToUser")
+  TicketHistory                    TicketHistory[]
+  Department                       Department      @relation(fields: [departmentId], references: [id])
 
   @@index([departmentId], map: "User_departmentId_fkey")
 }
 
-enum tickethistory_oldStatus {
+enum TicketHistory_oldStatus {
   NEW
   ASSIGNED
   IN_PROGRESS
   RESOLVED
-  REOPENED
   CLOSED
 }
 
-enum tickethistory_newStatus {
+enum TicketHistory_newStatus {
   NEW
   ASSIGNED
   IN_PROGRESS
   RESOLVED
-  REOPENED
   CLOSED
 }
 
-enum user_role {
+enum User_role {
   ADMIN
   IT_SUPPORT
   EMPLOYEE
 }
 
-enum user_status {
+enum User_status {
   ACTIVE
   INACTIVE
 }
 
-enum ticket_priority {
+enum Ticket_priority {
   LOW
   MEDIUM
   HIGH
   CRITICAL
 }
 
-enum ticket_status {
+enum Ticket_status {
   NEW
   ASSIGNED
   IN_PROGRESS
   RESOLVED
-  REOPENED
   CLOSED
 }
