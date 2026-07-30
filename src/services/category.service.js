@@ -1,7 +1,11 @@
 const prisma = require("../config/prisma");
 
-const getCategories = async () => {
+const getCategories = async (user) => {
   return await prisma.category.findMany({
+    where: {
+      organizationId: user.department.organizationId,
+      isActive: true,
+    },
     include: {
       organization: true,
     },
@@ -73,6 +77,20 @@ const updateCategory = async (id, data) => {
     throw new Error("Category not found.");
   }
 
+  const exists = await prisma.category.findFirst({
+    where: {
+      organizationId: Number(data.organizationId),
+      name: data.name,
+      NOT: {
+        id,
+      },
+    },
+  });
+
+  if (exists) {
+    throw new Error("Category already exists.");
+  }
+
   return await prisma.category.update({
     where: { id },
     data: {
@@ -92,6 +110,18 @@ const deleteCategory = async (id) => {
 
   if (!category) {
     throw new Error("Category not found.");
+  }
+
+  const ticketCount = await prisma.ticket.count({
+    where: {
+      categoryId: id,
+    },
+  });
+
+  if (ticketCount > 0) {
+    throw new Error(
+      "Category cannot be deleted because tickets are assigned to it."
+    );
   }
 
   await prisma.category.delete({

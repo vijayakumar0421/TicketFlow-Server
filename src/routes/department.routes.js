@@ -20,4 +20,19 @@ router.post(
   departmentController.createDepartment
 );
 
+router.put(
+  "/:id",
+  authenticate,
+  authorize("ADMIN"),
+  departmentController.updateDepartment
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("ADMIN"),
+  departmentController.deleteDepartment
+);
+
+
 module.exports = router;

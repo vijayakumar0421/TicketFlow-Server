@@ -7,8 +7,10 @@ const categoryService = require("../services/category.service");
 
 const getCategories = async (req, res) => {
   try {
+    console.log("Logged in user:", req.user);
+
     const categories =
-      await categoryService.getCategories();
+      await categoryService.getCategories(req.user);
 
     return successResponse(
       res,

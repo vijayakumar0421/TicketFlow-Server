@@ -35,7 +35,40 @@ const createDepartment = async (req, res) => {
   }
 };
 
+const updateDepartment = async (req, res) => {
+  try {
+    const department =
+      await departmentService.updateDepartment(
+        req.params.id,
+        req.body
+      );
+
+    return successResponse(
+      res,
+      "Department updated successfully",
+      department
+    );
+  } catch (error) {
+    return errorResponse(res, 400, error.message);
+  }
+};
+
+const deleteDepartment = async (req, res) => {
+  try {
+    await departmentService.deleteDepartment(req.params.id);
+
+    return successResponse(
+      res,
+      "Department deleted successfully"
+    );
+  } catch (error) {
+    return errorResponse(res, 400, error.message);
+  }
+};
+
 module.exports = {
   getDepartments,
   createDepartment,
+  updateDepartment,
+  deleteDepartment,
 };

@@ -7,125 +7,192 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Organization {
+model category {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  name           String
+  description    String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   organization @relation(fields: [organizationId], references: [id], map: "Category_organizationId_fkey")
+  ticket         ticket[]
+
+  @@unique([organizationId, name], map: "Category_organizationId_name_key")
+}
+
+model department {
+  id             Int          @id @default(autoincrement())
+  organizationId Int
+  name           String
+  description    String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   organization @relation(fields: [organizationId], references: [id], map: "Department_organizationId_fkey")
+  user           user[]
+
+  @@unique([organizationId, name], map: "Department_organizationId_name_key")
+}
+
+model organization {
   id          Int          @id @default(autoincrement())
-  name        String       @unique
-  code        String       @unique
+  name        String       @unique(map: "Organization_name_key")
+  code        String       @unique(map: "Organization_code_key")
   description String?
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  categories  Category[]
-  departments Department[]
+  category    category[]
+  department  department[]
 }
 
-model Department {
-  id             Int          @id @default(autoincrement())
-  organizationId Int
-  name           String
-  description    String?
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  users          User[]
-
-  @@unique([organizationId, name])
+model slapolicy {
+  id                    Int      @id @default(autoincrement())
+  firstResponseHours    Int
+  resolutionHours       Int
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
-model Category {
-  id             Int          @id @default(autoincrement())
-  organizationId Int
-  name           String
-  description    String?
-  isActive       Boolean      @default(true)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  tickets        Ticket[]
+model ticket {
+  id                             Int             @id @default(autoincrement())
+  ticketNumber                   String          @unique(map: "Ticket_ticketNumber_key")
+  title                          String @db.VarChar(100)
+  description                    String @db.LongText
+  categoryId                     Int
+  employeeId                     Int
+  assignedToId                   Int?
+  priority                       ticket_priority
+  status                         ticket_status   @default(NEW)
 
-  @@unique([organizationId, name])
-}
+  resolutionSummary              String?         @db.LongText
+  timeSpentMinutes               Int?
+  firstResponseTargetHours       Int?
+  resolutionTargetHours          Int?
 
-model User {
-  id              Int             @id @default(autoincrement())
-  employeeId      String          @unique
-  name            String
-  email           String          @unique
-  password        String
-  role            UserRole
-  status          UserStatus      @default(ACTIVE)
-  departmentId    Int
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  assignedTickets Ticket[]        @relation("AssignedTickets")
-  createdTickets  Ticket[]        @relation("CreatedTickets")
-  ticketHistory   TicketHistory[]
-  department      Department      @relation(fields: [departmentId], references: [id])
+  firstResponseDueAt             DateTime?
+  firstResponseAt                DateTime?
 
-  @@index([departmentId], map: "User_departmentId_fkey")
-}
+  resolutionDueAt                DateTime?
+  resolvedAt                     DateTime?
 
-model Ticket {
-  id           Int             @id @default(autoincrement())
-  ticketNumber String          @unique
-  title        String
-  description  String
-  categoryId   Int
-  employeeId   Int
-  assignedToId Int?
-  priority     TicketPriority
-  status       TicketStatus    @default(NEW)
-  attachment   String?         @db.LongText
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  assignedTo   User?           @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  category     Category        @relation(fields: [categoryId], references: [id])
-  employee     User            @relation("CreatedTickets", fields: [employeeId], references: [id])
-  history      TicketHistory[]
+  createdAt                      DateTime        @default(now())
+  updatedAt                      DateTime        @updatedAt
+  user_ticket_assignedToIdTouser user?           @relation("ticket_assignedToIdTouser", fields: [assignedToId], references: [id], map: "Ticket_assignedToId_fkey")
+  category                       category        @relation(fields: [categoryId], references: [id], map: "Ticket_categoryId_fkey")
+  user_ticket_employeeIdTouser   user            @relation("ticket_employeeIdTouser", fields: [employeeId], references: [id], map: "Ticket_employeeId_fkey")
+  tickethistory                  tickethistory[]
+  comments                       ticketcomment[]
+  attachments                    ticketattachment[]
 
   @@index([assignedToId], map: "Ticket_assignedToId_fkey")
   @@index([categoryId], map: "Ticket_categoryId_fkey")
   @@index([employeeId], map: "Ticket_employeeId_fkey")
 }
 
-model TicketHistory {
-  id          Int          @id @default(autoincrement())
+model tickethistory {
+  id          Int                     @id @default(autoincrement())
   ticketId    Int
   updatedById Int
-  remarks     String?
-  oldStatus   TicketStatus
-  newStatus   TicketStatus
-  createdAt   DateTime     @default(now())
-  ticket      Ticket       @relation(fields: [ticketId], references: [id])
-  updatedBy   User         @relation(fields: [updatedById], references: [id])
+  oldStatus   tickethistory_oldStatus
+  newStatus   tickethistory_newStatus
+  createdAt   DateTime                @default(now())
+  ticket      ticket                  @relation(fields: [ticketId], references: [id], map: "TicketHistory_ticketId_fkey")
+  user        user                    @relation(fields: [updatedById], references: [id], map: "TicketHistory_updatedById_fkey")
 
   @@index([ticketId], map: "TicketHistory_ticketId_fkey")
   @@index([updatedById], map: "TicketHistory_updatedById_fkey")
 }
 
-enum UserRole {
+model ticketcomment {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  userId    Int
+  comment   String   @db.LongText
+  createdAt DateTime @default(now())
+
+  ticket ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   user   @relation(fields: [userId], references: [id])
+
+  @@index([ticketId])
+}
+
+model ticketattachment {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  fileName  String
+  fileType  String
+  fileData  String   @db.LongText
+  createdAt DateTime @default(now())
+
+  ticket ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+model user {
+  id                               Int             @id @default(autoincrement())
+  employeeId                       String          @unique(map: "User_employeeId_key")
+  name                             String
+  email                            String          @unique(map: "User_email_key")
+  password                         String
+  role                             user_role
+  status                           user_status     @default(ACTIVE)
+  departmentId                     Int
+  createdAt                        DateTime        @default(now())
+  updatedAt                        DateTime        @updatedAt
+  ticket_ticket_assignedToIdTouser ticket[]        @relation("ticket_assignedToIdTouser")
+  ticket_ticket_employeeIdTouser   ticket[]        @relation("ticket_employeeIdTouser")
+  tickethistory                    tickethistory[]
+  ticketComments                   ticketcomment[]
+  department                       department      @relation(fields: [departmentId], references: [id], map: "User_departmentId_fkey")
+
+  @@index([departmentId], map: "User_departmentId_fkey")
+}
+
+enum tickethistory_oldStatus {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  REOPENED
+  CLOSED
+}
+
+enum tickethistory_newStatus {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  REOPENED
+  CLOSED
+}
+
+enum user_role {
   ADMIN
   IT_SUPPORT
   EMPLOYEE
 }
 
-enum UserStatus {
+enum user_status {
   ACTIVE
   INACTIVE
 }
 
-enum TicketStatus {
-  NEW
-  ASSIGNED
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
-}
-
-enum TicketPriority {
+enum ticket_priority {
   LOW
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum ticket_status {
+  NEW
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  REOPENED
+  CLOSED
 }

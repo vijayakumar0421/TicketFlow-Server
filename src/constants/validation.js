@@ -1,0 +1,8 @@
+const VALIDATION = {
+  TICKET: {
+    TITLE_MAX_LENGTH: 100,
+    DESCRIPTION_MAX_LENGTH: 1000,
+  },
+};
+
+module.exports = VALIDATION;

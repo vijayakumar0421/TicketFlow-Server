@@ -56,12 +56,63 @@ const importUsers = async (req, res) => {
 // Get All Users
 const getAllUsers = async (req, res) => {
   try {
-    const users = await userService.getAllUsers();
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      organization,
+      department,
+      role,
+      status,
+    } = req.query;
+
+    const users = await userService.getAllUsers(
+      page,
+      limit,
+      {
+        search,
+        organization,
+        department,
+        role,
+        status,
+      }
+    );
 
     return successResponse(
       res,
       "Users fetched successfully",
       users
+    );
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+// Get User Stats
+const getUserStats = async (req, res) => {
+  try {
+    const stats = await userService.getUserStats();
+
+    return successResponse(
+      res,
+      "User statistics fetched successfully",
+      stats
+    );
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+// Get User Filter Options
+const getUserFilterOptions = async (req, res) => {
+  try {
+    const filterOptions =
+      await userService.getUserFilterOptions();
+
+    return successResponse(
+      res,
+      "User filter options fetched successfully",
+      filterOptions
     );
   } catch (error) {
     return errorResponse(res, 500, error.message);
@@ -116,12 +167,54 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Get IT Support Users
+const getITSupportUsers = async (req, res) => {
+  try {
+    const users = await userService.getITSupportUsers();
+
+    return successResponse(
+      res,
+      "IT Support users fetched successfully",
+      users
+    );
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    await userService.changePassword(
+      req.user.id,
+      currentPassword,
+      newPassword
+    );
+
+    return successResponse(
+      res,
+      "Password updated successfully."
+    );
+  } catch (error) {
+    return errorResponse(
+      res,
+      400,
+      error.message
+    );
+  }
+};
+
 module.exports = {
   createUser,
   validateImportUsers,
   importUsers,
   getAllUsers,
+  getUserStats,
+  getUserFilterOptions,
+  getITSupportUsers,
   getUserById,
   updateUser,
   deleteUser,
+  changePassword,
 };

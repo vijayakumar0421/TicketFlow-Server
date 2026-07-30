@@ -7,7 +7,31 @@ const ticketService = require("../services/ticket.service");
 
 const getTickets = async (req, res) => {
   try {
-    const tickets = await ticketService.getTickets();
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      organization,
+      status,
+      priority,
+      category,
+      department,
+      assignedTo,
+    } = req.query;
+
+    const tickets = await ticketService.getTickets(
+      page,
+      limit,
+      {
+        search,
+        organization,
+        status,
+        priority,
+        category,
+        department,
+        assignedTo,
+      }
+    );
 
     return successResponse(
       res,
@@ -19,11 +43,71 @@ const getTickets = async (req, res) => {
   }
 };
 
+const getTicketStats = async (req, res) => {
+  try {
+    const stats =
+      await ticketService.getTicketStats();
+
+    return successResponse(
+      res,
+      "Ticket statistics fetched successfully",
+      stats
+    );
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+const getMyTicketStats = async (req, res) => {
+  try {
+    const stats =
+      await ticketService.getMyTicketStats(
+        req.user.id
+      );
+
+    return successResponse(
+      res,
+      "My ticket statistics fetched successfully",
+      stats
+    );
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
+const getTicketFilterOptions = async (
+  req,
+  res
+) => {
+  try {
+    const options =
+      await ticketService.getTicketFilterOptions();
+
+    return successResponse(
+      res,
+      "Ticket filter options fetched successfully",
+      options
+    );
+  } catch (error) {
+    return errorResponse(res, 500, error.message);
+  }
+};
+
 const getMyTickets = async (req, res) => {
   try {
-    const tickets = await ticketService.getMyTickets(
-      req.user.id
-    );
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+    } = req.query;
+
+    const tickets =
+      await ticketService.getMyTickets(
+        req.user.id,
+        page,
+        limit,
+        search
+      );
 
     return successResponse(
       res,
@@ -92,10 +176,32 @@ const updateTicket = async (req, res) => {
   }
 };
 
+const addComment = async (req, res) => {
+  try {
+    const comment = await ticketService.addComment(
+      Number(req.params.id),
+      req.user.id,
+      req.body.comment
+    );
+
+    return successResponse(
+      res,
+      "Comment added successfully",
+      comment
+    );
+  } catch (error) {
+    return errorResponse(res, 400, error.message);
+  }
+};
+
 module.exports = {
   getTickets,
+  getTicketStats,
+  getMyTicketStats,
+  getTicketFilterOptions,
   getMyTickets,
   getTicketById,
   createTicket,
   updateTicket,
+  addComment,
 };

@@ -13,7 +13,11 @@ const login = async (email, password) => {
         email,
       },
       include: {
-        department: true,
+        department: {
+          include: {
+            organization: true,
+          },
+        },
       },
     });
 
@@ -42,13 +46,14 @@ const login = async (email, password) => {
     return {
       token,
       user: {
-        id: user.id,
-        employeeId: user.employeeId,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        department: user.department.name,
-      },
+      id: user.id,
+      employeeId: user.employeeId,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      department: user.department?.name,
+      organization: user.department?.organization?.name,
+    },
     };
   } catch (err) {
     console.error("========== LOGIN ERROR ==========");
@@ -65,7 +70,11 @@ const getCurrentUser = async (userId) => {
         id: userId,
       },
       include: {
-        department: true,
+        department: {
+          include: {
+            organization: true,
+          },
+        },
       },
     });
 
@@ -79,7 +88,8 @@ const getCurrentUser = async (userId) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      department: user.department.name,
+      department: user.department?.name,
+      organization: user.department?.organization?.name,
     };
   } catch (err) {
     console.error("GET CURRENT USER ERROR:", err);

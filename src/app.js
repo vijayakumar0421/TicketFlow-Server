@@ -1,19 +1,13 @@
-const organizationRoutes = require("./routes/organization.routes");
-
-const departmentRoutes = require("./routes/department.routes");
-
-const categoryRoutes = require("./routes/category.routes");
-
 const express = require("express");
 const cors = require("cors");
 
 const authRoutes = require("./routes/auth.routes");
-
 const userRoutes = require("./routes/user.routes");
-
+const organizationRoutes = require("./routes/organization.routes");
+const departmentRoutes = require("./routes/department.routes");
+const categoryRoutes = require("./routes/category.routes");
 const ticketRoutes = require("./routes/ticket.routes");
-
-
+const reportsRoutes = require("./routes/reports.routes");
 
 const app = express();
 
@@ -32,6 +26,7 @@ app.use(
   })
 );
 
+// Health Check
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -39,6 +34,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// API Routes
 app.use("/api/auth", authRoutes);
 
 app.use("/api/users", userRoutes);
@@ -51,6 +47,9 @@ app.use("/api/categories", categoryRoutes);
 
 app.use("/api/tickets", ticketRoutes);
 
+app.use("/api/reports", reportsRoutes);
+
+// Debug Database Connection
 app.get("/api/debug-db", async (req, res) => {
   const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();

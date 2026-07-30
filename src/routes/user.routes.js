@@ -12,7 +12,8 @@ const {
   authorize,
 } = require("../middleware/role.middleware");
 
-// Get All Users
+// ===================== Get All Users =====================
+
 router.get(
   "/",
   authenticate,
@@ -20,7 +21,35 @@ router.get(
   userController.getAllUsers
 );
 
-// Get Single User
+// ===================== Get IT Support Users =====================
+
+router.get(
+  "/it-support",
+  authenticate,
+  authorize("ADMIN", "IT_SUPPORT"),
+  userController.getITSupportUsers
+);
+
+// ===================== Get User Stats =====================
+
+router.get(
+  "/stats",
+  authenticate,
+  authorize("ADMIN"),
+  userController.getUserStats
+);
+
+// ===================== Get User Filter Options =====================
+
+router.get(
+  "/filter-options",
+  authenticate,
+  authorize("ADMIN"),
+  userController.getUserFilterOptions
+);
+
+// ===================== Get Single User =====================
+
 router.get(
   "/:id",
   authenticate,
@@ -28,7 +57,8 @@ router.get(
   userController.getUserById
 );
 
-// Create User
+// ===================== Create User =====================
+
 router.post(
   "/",
   authenticate,
@@ -36,7 +66,8 @@ router.post(
   userController.createUser
 );
 
-// Import Users
+// ===================== Import Users =====================
+
 router.post(
   "/import",
   authenticate,
@@ -44,7 +75,23 @@ router.post(
   userController.importUsers
 );
 
-// Update User
+router.post(
+  "/import/validate",
+  authenticate,
+  authorize("ADMIN"),
+  userController.validateImportUsers
+);
+
+// ===================== Change Password =====================
+
+router.put(
+  "/change-password",
+  authenticate,
+  userController.changePassword
+);
+
+// ===================== Update User =====================
+
 router.put(
   "/:id",
   authenticate,
@@ -52,19 +99,13 @@ router.put(
   userController.updateUser
 );
 
-// Delete User
+// ===================== Delete User =====================
+
 router.delete(
   "/:id",
   authenticate,
   authorize("ADMIN"),
   userController.deleteUser
-);
-
-router.post(
-  "/import/validate",
-  authenticate,
-  authorize("ADMIN"),
-  userController.validateImportUsers
 );
 
 module.exports = router;
