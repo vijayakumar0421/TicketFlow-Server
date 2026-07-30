@@ -11,8 +11,10 @@ const reportsRoutes = require("./routes/reports.routes");
 
 const app = express();
 
+// CORS
 app.use(cors());
 
+// Body Parser
 app.use(
   express.json({
     limit: "20mb",
@@ -26,6 +28,14 @@ app.use(
   })
 );
 
+// Root Route
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "TicketFlow Backend API is running 🚀",
+  });
+});
+
 // Health Check
 app.get("/api/health", (req, res) => {
   res.status(200).json({
@@ -36,20 +46,14 @@ app.get("/api/health", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
-
 app.use("/api/users", userRoutes);
-
 app.use("/api/organizations", organizationRoutes);
-
 app.use("/api/departments", departmentRoutes);
-
 app.use("/api/categories", categoryRoutes);
-
 app.use("/api/tickets", ticketRoutes);
-
 app.use("/api/reports", reportsRoutes);
 
-// Debug Database Connection
+// Database Connection Test
 app.get("/api/debug-db", async (req, res) => {
   const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();
@@ -59,19 +63,25 @@ app.get("/api/debug-db", async (req, res) => {
 
     res.json({
       success: true,
-      databaseUrl: process.env.DATABASE_URL,
       message: "Database connection successful",
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      databaseUrl: process.env.DATABASE_URL,
       error: error.message,
       code: error.code,
     });
   } finally {
     await prisma.$disconnect();
   }
+});
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
 });
 
 module.exports = app;

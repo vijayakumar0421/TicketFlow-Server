@@ -5,7 +5,7 @@ const { generateToken } = require("../config/jwt");
 const login = async (email, password) => {
   console.log("========== LOGIN START ==========");
   console.log("Email:", email);
-  console.log("DATABASE_URL:", process.env.DATABASE_URL);
+  console.log("✅ DATABASE_URL loaded");
 
   try {
     const user = await prisma.user.findUnique({
