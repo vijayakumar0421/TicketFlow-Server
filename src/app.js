@@ -44,6 +44,12 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Log every request
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
