@@ -12,26 +12,19 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    console.log("Authorization Header:", authHeader);
-
     const token = authHeader.split(" ")[1];
-
-    console.log("Token:", token);
-    console.log("JWT Secret:", process.env.JWT_SECRET);
 
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET
     );
 
-    console.log("Decoded Token:", decoded);
-
     const user = await prisma.user.findUnique({
       where: {
         id: decoded.id,
       },
       include: {
-        department: true,
+        Department: true,
       },
     });
 
@@ -46,8 +39,8 @@ const authenticate = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log("===== JWT ERROR =====");
-    console.log(error);
+    console.error("===== JWT ERROR =====");
+    console.error(error);
 
     return res.status(401).json({
       success: false,
