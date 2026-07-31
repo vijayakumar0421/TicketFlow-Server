@@ -8,7 +8,7 @@ async function main() {
   console.log("🚀 TicketFlow Seed Started");
   console.log("=================================");
 
-  const hashedPassword = await bcrypt.hash("Admin@123", 10);
+  const hashedPassword = await bcrypt.hash("Admin@12345", 10);
 
   // -----------------------------
   // Organizations
@@ -22,6 +22,7 @@ async function main() {
       name: "DigiPro",
       code: "DIGI",
       description: "Software Development Company",
+      updatedAt: new Date(),
     },
   });
 
@@ -34,6 +35,7 @@ async function main() {
       name: "InsurePro",
       code: "INS",
       description: "Insurance Company",
+      updatedAt: new Date(),
     },
   });
 
@@ -67,6 +69,7 @@ async function main() {
         organizationId: digiPro.id,
         name,
         description: `${name} Department`,
+        updatedAt: new Date(),
       },
     });
 
@@ -101,6 +104,7 @@ async function main() {
         organizationId: insurePro.id,
         name,
         description: `${name} Department`,
+        updatedAt: new Date(),
       },
     });
 
@@ -130,53 +134,52 @@ async function main() {
   // -----------------------------
   console.log("Checking Admin User...");
 
-  const adminExists = await prisma.user.findUnique({
-    where: {
-      email: "admin@ticketflow.com",
-    },
-  });
+  await prisma.user.upsert({
+  where: {
+    employeeId: "EMP001",
+  },
+  update: {
+    email: "vijayakumar@digi-pro.co",
+    password: hashedPassword,
+    name: "System Administrator",
+    role: "ADMIN",
+    status: "ACTIVE",
+    departmentId: itSupportDepartment.id,
+    updatedAt: new Date(),
+  },
+  create: {
+    employeeId: "EMP001",
+    name: "System Administrator",
+    email: "vijayakumar@digi-pro.co",
+    password: hashedPassword,
+    role: "ADMIN",
+    status: "ACTIVE",
+    departmentId: itSupportDepartment.id,
+    updatedAt: new Date(),
+  },
+});
 
-  console.log("Admin Exists:", adminExists);
-
-  if (!adminExists) {
-    console.log("Creating Admin User...");
-
-    const admin = await prisma.user.create({
-      data: {
-        employeeId: "EMP001",
-        name: "System Administrator",
-        email: "admin@ticketflow.com",
-        password: hashedPassword,
-        role: "ADMIN",
-        status: "ACTIVE",
-        departmentId: itSupportDepartment.id,
-      },
-    });
-
-    console.log("✅ Admin Created:", admin.email);
-  } else {
-    console.log("ℹ️ Admin already exists.");
-  }
+console.log("✅ Admin user created/updated");
 
   // -----------------------------
   // Default SLA Policy
   // -----------------------------
-  console.log("Checking Default SLA Policy...");
+  //console.log("Checking Default SLA Policy...");
 
-  const slaPolicy = await prisma.slapolicy.findFirst();
+  //const slaPolicy = await prisma.slapolicy.findFirst();
 
-  if (!slaPolicy) {
-    await prisma.slapolicy.create({
-      data: {
-        firstResponseHours: 2,
-        resolutionHours: 24,
-      },
-    });
+  //if (!slaPolicy) {
+    //await prisma.slapolicy.create({
+      //data: {
+      //  firstResponseHours: 2,
+        //resolutionHours: 24,
+      //},
+   // });
 
-    console.log("✅ Default SLA Policy Created (2h / 24h)");
-  } else {
-    console.log("ℹ️ SLA Policy already exists.");
-  }
+  //  console.log("✅ Default SLA Policy Created (2h / 24h)");
+  //} else {
+  //  console.log("ℹ️ SLA Policy already exists.");
+ // }
 
   console.log("=================================");
   console.log("🎉 TicketFlow Seed Completed");
