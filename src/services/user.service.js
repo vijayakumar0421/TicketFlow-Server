@@ -77,8 +77,8 @@ if (
   organization &&
   organization !== "All Organizations"
 ) {
-  where.department = {
-    organization: {
+  where.Department = {
+    Organization: {
       name: organization,
     },
   };
@@ -89,10 +89,10 @@ if (
   department &&
   department !== "All Departments"
 ) {
-  where.department = {
-    ...(where.department || {}),
-    name: department,
-  };
+  where.Department = {
+  ...(where.Department || {}),
+  name: department,
+};
 }
 
 // Role
@@ -122,11 +122,11 @@ if (
         status: true,
         createdAt: true,
         updatedAt: true,
-        department: {
+        Department: {
           select: {
             id: true,
             name: true,
-            organization: {
+            Organization: {
               select: {
                 id: true,
                 name: true,
@@ -232,13 +232,13 @@ const getUserFilterOptions = async () => {
   ]);
 
   return {
-    organizations: organizations.map(
-      (item) => item.name
-    ),
+    organizations: [
+    ...new Set(organizations.map((item) => item.name)),
+  ],
 
-    departments: departments.map(
-      (item) => item.name
-    ),
+    departments: [
+      ...new Set(departments.map((item) => item.name)),
+    ],
 
     roles: [
       "ADMIN",
@@ -278,9 +278,9 @@ const getUserById = async (id) => {
       id: Number(id),
     },
     include: {
-      department: {
+      Department: {
         include: {
-          organization: true,
+          Organization: true,
         },
       },
     },
@@ -314,9 +314,9 @@ const updateUser = async (id, data) => {
     },
     data: updateData,
     include: {
-      department: {
+      Department: {
         include: {
-          organization: true,
+          Organization: true,
         },
       },
     },

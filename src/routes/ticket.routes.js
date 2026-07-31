@@ -8,6 +8,8 @@ const {
   authenticate,
 } = require("../middleware/auth.middleware");
 
+const upload = require("../middleware/upload.middleware");
+
 // ==============================
 // Get All Tickets
 // ==============================
@@ -68,6 +70,7 @@ router.get(
 router.post(
   "/",
   authenticate,
+  upload.single("attachment"),
   ticketController.createTicket
 );
 

@@ -14,7 +14,7 @@ model Category {
   description    String?
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime     @updatedAt
   Organization   Organization @relation(fields: [organizationId], references: [id])
   Ticket         Ticket[]
 
@@ -28,7 +28,7 @@ model Department {
   description    String?
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime     @updatedAt
   Organization   Organization @relation(fields: [organizationId], references: [id])
   User           User[]
 
@@ -42,7 +42,7 @@ model Organization {
   description String?
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime     @updatedAt
   Category    Category[]
   Department  Department[]
 }
@@ -58,16 +58,49 @@ model Ticket {
   priority                       Ticket_priority
   status                         Ticket_status   @default(NEW)
   attachment                     String?         @db.LongText
+
+  // ==========================
+  // SLA
+  // ==========================
+  firstResponseTargetHours       Int             @default(2)
+  resolutionTargetHours          Int             @default(24)
+
+  firstResponseDueAt             DateTime?
+  firstResponseAt                DateTime?
+
+  resolutionDueAt                DateTime?
+  resolvedAt                     DateTime?
+  // ==========================
+
+  // ==========================
+// Resolution
+// ==========================
+resolutionSummary                String?         @db.LongText
+
+resolutionHours                  Int?
+
+resolutionMinutes                Int?
+
+resolvedById                     Int?
+
+ResolvedBy User? @relation("Ticket_resolvedByIdToUser", fields: [resolvedById], references: [id])
+// ==========================
+
+
   createdAt                      DateTime        @default(now())
-  updatedAt                      DateTime
+  updatedAt                      DateTime        @updatedAt
+
   User_Ticket_assignedToIdToUser User?           @relation("Ticket_assignedToIdToUser", fields: [assignedToId], references: [id])
   Category                       Category        @relation(fields: [categoryId], references: [id])
   User_Ticket_employeeIdToUser   User            @relation("Ticket_employeeIdToUser", fields: [employeeId], references: [id])
+
   TicketHistory                  TicketHistory[]
+  Comments                       TicketComment[]
 
   @@index([assignedToId], map: "Ticket_assignedToId_fkey")
   @@index([categoryId], map: "Ticket_categoryId_fkey")
   @@index([employeeId], map: "Ticket_employeeId_fkey")
+  @@index([resolvedById], map: "Ticket_resolvedById_fkey")
 }
 
 model TicketHistory {
@@ -78,11 +111,26 @@ model TicketHistory {
   oldStatus   TicketHistory_oldStatus
   newStatus   TicketHistory_newStatus
   createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
   Ticket      Ticket                  @relation(fields: [ticketId], references: [id])
   User        User                    @relation(fields: [updatedById], references: [id])
 
   @@index([ticketId], map: "TicketHistory_ticketId_fkey")
   @@index([updatedById], map: "TicketHistory_updatedById_fkey")
+}
+
+model TicketComment {
+  id          Int      @id @default(autoincrement())
+  ticketId    Int
+  commentedBy Int
+  comment     String   @db.LongText
+  createdAt   DateTime @default(now())
+
+  Ticket Ticket @relation(fields: [ticketId], references: [id])
+  User   User   @relation(fields: [commentedBy], references: [id])
+
+  @@index([ticketId])
+  @@index([commentedBy])
 }
 
 model User {
@@ -95,10 +143,12 @@ model User {
   status                           User_status     @default(ACTIVE)
   departmentId                     Int
   createdAt                        DateTime        @default(now())
-  updatedAt                        DateTime
+  updatedAt                        DateTime        @updatedAt
   Ticket_Ticket_assignedToIdToUser Ticket[]        @relation("Ticket_assignedToIdToUser")
   Ticket_Ticket_employeeIdToUser   Ticket[]        @relation("Ticket_employeeIdToUser")
   TicketHistory                    TicketHistory[]
+  TicketComments                   TicketComment[]
+  Ticket_Ticket_resolvedByIdToUser Ticket[] @relation("Ticket_resolvedByIdToUser")
   Department                       Department      @relation(fields: [departmentId], references: [id])
 
   @@index([departmentId], map: "User_departmentId_fkey")
@@ -109,6 +159,7 @@ enum TicketHistory_oldStatus {
   ASSIGNED
   IN_PROGRESS
   RESOLVED
+  REOPENED
   CLOSED
 }
 
@@ -117,6 +168,7 @@ enum TicketHistory_newStatus {
   ASSIGNED
   IN_PROGRESS
   RESOLVED
+  REOPENED
   CLOSED
 }
 
@@ -143,5 +195,6 @@ enum Ticket_status {
   ASSIGNED
   IN_PROGRESS
   RESOLVED
+  REOPENED
   CLOSED
 }

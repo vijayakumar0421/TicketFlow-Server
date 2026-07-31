@@ -3,7 +3,7 @@ const prisma = require("../config/prisma");
 const getDepartments = async () => {
   return await prisma.department.findMany({
     include: {
-      organization: true,
+      Organization: true,
     },
     orderBy: {
       name: "asc",

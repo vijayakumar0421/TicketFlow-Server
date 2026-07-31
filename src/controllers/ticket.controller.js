@@ -141,9 +141,16 @@ const getTicketById = async (req, res) => {
 
 const createTicket = async (req, res) => {
   try {
+    const ticketData = {
+      ...req.body,
+      attachment: req.file
+        ? `/uploads/${req.file.filename}`
+        : null,
+    };
+
     const ticket =
       await ticketService.createTicket(
-        req.body,
+        ticketData,
         req.user.id
       );
 

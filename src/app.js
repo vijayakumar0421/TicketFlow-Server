@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
@@ -8,6 +9,7 @@ const departmentRoutes = require("./routes/department.routes");
 const categoryRoutes = require("./routes/category.routes");
 const ticketRoutes = require("./routes/ticket.routes");
 const reportsRoutes = require("./routes/reports.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
 
 const app = express();
 
@@ -26,6 +28,12 @@ app.use(
     extended: true,
     limit: "20mb",
   })
+);
+
+// Serve uploaded files
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "../uploads"))
 );
 
 // Root Route
@@ -58,6 +66,7 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/reports", reportsRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Database Connection Test
 app.get("/api/debug-db", async (req, res) => {

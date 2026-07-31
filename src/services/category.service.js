@@ -3,11 +3,11 @@ const prisma = require("../config/prisma");
 const getCategories = async (user) => {
   return await prisma.category.findMany({
     where: {
-      organizationId: user.department.organizationId,
+      organizationId: user.Department.organizationId,
       isActive: true,
     },
     include: {
-      organization: true,
+      Organization: true,
     },
     orderBy: {
       name: "asc",
@@ -56,7 +56,7 @@ const getCategoryById = async (id) => {
   const category = await prisma.category.findUnique({
     where: { id },
     include: {
-      organization: true,
+      Organization: true,
     },
   });
 
