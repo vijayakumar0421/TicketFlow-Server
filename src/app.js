@@ -32,29 +32,29 @@ app.use(
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "TicketFlow Backend  is running 🚀",
+    message: "TicketFlow Backend is running 🚀",
   });
 });
 
 // Health Check
-app.get("//health", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "TicketFlow Backend is running 🚀",
   });
 });
 
-//  Routes
-app.use("//auth", authRoutes);
-app.use("//users", userRoutes);
-app.use("//organizations", organizationRoutes);
-app.use("//departments", departmentRoutes);
-app.use("//categories", categoryRoutes);
-app.use("//tickets", ticketRoutes);
-app.use("//reports", reportsRoutes);
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/organizations", organizationRoutes);
+app.use("/api/departments", departmentRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/tickets", ticketRoutes);
+app.use("/api/reports", reportsRoutes);
 
 // Database Connection Test
-app.get("//debug-db", async (req, res) => {
+app.get("/api/debug-db", async (req, res) => {
   const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();
 
