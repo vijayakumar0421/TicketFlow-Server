@@ -39,6 +39,7 @@ const getTickets = async (req, res) => {
       tickets
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 500, error.message);
   }
 };
@@ -54,6 +55,7 @@ const getTicketStats = async (req, res) => {
       stats
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 500, error.message);
   }
 };
@@ -71,6 +73,7 @@ const getMyTicketStats = async (req, res) => {
       stats
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 500, error.message);
   }
 };
@@ -89,6 +92,7 @@ const getTicketFilterOptions = async (
       options
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 500, error.message);
   }
 };
@@ -115,6 +119,7 @@ const getMyTickets = async (req, res) => {
       tickets
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(
       res,
       500,
@@ -135,6 +140,7 @@ const getTicketById = async (req, res) => {
       ticket
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 404, error.message);
   }
 };
@@ -160,6 +166,7 @@ const createTicket = async (req, res) => {
       ticket
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 400, error.message);
   }
 };
@@ -179,6 +186,7 @@ const updateTicket = async (req, res) => {
       ticket
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 400, error.message);
   }
 };
@@ -197,6 +205,7 @@ const addComment = async (req, res) => {
       comment
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, 400, error.message);
   }
 };
