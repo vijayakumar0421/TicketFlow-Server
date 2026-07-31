@@ -24,7 +24,11 @@ const authenticate = async (req, res, next) => {
         id: decoded.id,
       },
       include: {
-        Department: true,
+        Department: {
+          include: {
+            Organization: true,
+          },
+        },
       },
     });
 
