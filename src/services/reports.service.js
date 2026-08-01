@@ -34,6 +34,7 @@ const buildReportFilters = (filters = {}) => {
         title: {
           contains: search,
 
+
         },
       },
     ];
@@ -46,7 +47,7 @@ const buildReportFilters = (filters = {}) => {
     organization &&
     organization !== "All Organizations"
   ) {
-    where.category = {
+    where.Category = {
     organizationId: Number(organization),
     };
   }
@@ -78,8 +79,8 @@ const buildReportFilters = (filters = {}) => {
     category &&
     category !== "All Categories"
   ) {
-    where.category = {
-      ...(where.category || {}),
+    where.Category = {
+      ...(where.Category || {}),
       id: Number(category),
     };
   }
@@ -91,7 +92,7 @@ const buildReportFilters = (filters = {}) => {
     department &&
     department !== "All Departments"
   ) {
-    where.user_ticket_employeeIdTouser = {
+    where.User_Ticket_employeeIdToUser = {
       departmentId: Number(department),
     };
   }
@@ -103,7 +104,7 @@ const buildReportFilters = (filters = {}) => {
     assignedTo &&
     assignedTo !== "All IT Support"
   ) {
-    where.user_ticket_assignedToIdTouser = {
+    where.User_Ticket_assignedToIdToUser = {
       id: Number(assignedTo),
     };
   }
@@ -134,13 +135,11 @@ const buildReportFilters = (filters = {}) => {
  * Calculate Average Resolution Time
  * ----------------------------------------
  */
-const calculateAverageResolutionTime = (
-  tickets
-) => {
+const calculateAverageResolutionTime = (tickets) => {
   const resolvedTickets = tickets.filter(
     (ticket) =>
-      ticket.timeSpentMinutes &&
-      ticket.timeSpentMinutes > 0
+      ticket.resolutionHours != null ||
+      ticket.resolutionMinutes != null
   );
 
   if (!resolvedTickets.length) {
@@ -148,8 +147,13 @@ const calculateAverageResolutionTime = (
   }
 
   const totalMinutes = resolvedTickets.reduce(
-    (sum, ticket) =>
-      sum + ticket.timeSpentMinutes,
+    (sum, ticket) => {
+      return (
+        sum +
+        ((ticket.resolutionHours || 0) * 60) +
+        (ticket.resolutionMinutes || 0)
+      );
+    },
     0
   );
 
@@ -233,36 +237,36 @@ const getReportData = async (filters = {}) => {
     where,
 
     include: {
-      category: {
-        include: {
-          organization: true,
-        },
+    Category: {
+      include: {
+        Organization: true,
       },
+    },
 
-      user_ticket_employeeIdTouser: {
-        select: {
-          id: true,
-          employeeId: true,
-          name: true,
-          email: true,
-          department: {
-            select: {
-              id: true,
-              name: true,
-            },
+    User_Ticket_employeeIdToUser: {
+      select: {
+        id: true,
+        employeeId: true,
+        name: true,
+        email: true,
+        Department: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
+    },
 
-      user_ticket_assignedToIdTouser: {
-        select: {
-          id: true,
-          employeeId: true,
-          name: true,
-          email: true,
-        },
+    User_Ticket_assignedToIdToUser: {
+      select: {
+        id: true,
+        employeeId: true,
+        name: true,
+        email: true,
       },
     },
+  },
 
     orderBy: {
       createdAt: "desc",
@@ -322,7 +326,7 @@ const getReportData = async (filters = {}) => {
     priorityChart[ticket.priority]++;
 
     const categoryName =
-      ticket.category?.name || "Unknown";
+      ticket.Category?.name || "Unknown";
 
     categoryChart[categoryName] =
       (categoryChart[categoryName] || 0) + 1;
@@ -366,63 +370,71 @@ const getReportData = async (filters = {}) => {
   ];
 
   // ----------------------------------------
-  // Prepare Report Table
-  // ----------------------------------------
+// Prepare Report Table
+// ----------------------------------------
 
-  const reportTable = tickets.map((ticket) => ({
-  id: ticket.id,
+const reportTable = tickets.map((ticket) => {
+  const totalMinutes =
+    (ticket.resolutionHours || 0) * 60 +
+    (ticket.resolutionMinutes || 0);
 
-  ticketId: ticket.ticketNumber,
+  return {
+    id: ticket.id,
 
-  subject: ticket.title,
+    ticketId: ticket.ticketNumber,
 
-  employee:
-    ticket.user_ticket_employeeIdTouser?.name || "-",
+    subject: ticket.title,
 
-  department:
-    ticket.user_ticket_employeeIdTouser?.department?.name || "-",
+    employee:
+      ticket.User_Ticket_employeeIdToUser?.name || "-",
 
-  organization:
-    ticket.category?.organization?.name || "-",
+    department:
+      ticket.User_Ticket_employeeIdToUser?.Department?.name || "-",
 
-  category:
-    ticket.category?.name || "-",
+    organization:
+      ticket.Category?.Organization?.name || "-",
 
-  assignedTo:
-    ticket.user_ticket_assignedToIdTouser?.name || "-",
+    category:
+      ticket.Category?.name || "-",
 
-  priority: ticket.priority,
+    assignedTo:
+      ticket.User_Ticket_assignedToIdToUser?.name || "-",
 
-  status: ticket.status,
+    priority: ticket.priority,
 
-  createdDate: ticket.createdAt,
+    status: ticket.status,
 
-  updatedDate: ticket.updatedAt,
+    createdDate: ticket.createdAt,
 
-  hoursSpent:
-    formatMinutes(ticket.timeSpentMinutes),
+    updatedDate: ticket.updatedAt,
 
-  resolutionNotes:
-    ticket.resolutionSummary || "-",
+    hoursSpent:
+      totalMinutes > 0
+        ? formatMinutes(totalMinutes)
+        : "-",
 
-  firstResponseSLA:
-    ticket.firstResponseTargetHours
-      ? `${ticket.firstResponseTargetHours} hrs`
-      : "-",
+    resolutionNotes:
+      ticket.resolutionSummary || "-",
 
-  resolutionSLA:
-    ticket.resolutionTargetHours
-      ? `${ticket.resolutionTargetHours} hrs`
-      : "-",
+    firstResponseSLA:
+      ticket.firstResponseTargetHours
+        ? `${ticket.firstResponseTargetHours} hrs`
+        : "-",
 
-  slaMet:
-    ticket.resolvedAt &&
-    ticket.resolutionDueAt
-      ? ticket.resolvedAt <= ticket.resolutionDueAt
-        ? "Yes"
-        : "No"
-      : "-",
-}));
+    resolutionSLA:
+      ticket.resolutionTargetHours
+        ? `${ticket.resolutionTargetHours} hrs`
+        : "-",
+
+    slaMet:
+      ticket.resolvedAt &&
+      ticket.resolutionDueAt
+        ? ticket.resolvedAt <= ticket.resolutionDueAt
+          ? "Yes"
+          : "No"
+        : "-",
+  };
+});
 
   // ----------------------------------------
   // Final Response

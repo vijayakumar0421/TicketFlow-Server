@@ -191,6 +191,7 @@ const updateTicket = async (req, res) => {
   }
 };
 
+
 const addComment = async (req, res) => {
   try {
     const comment = await ticketService.addComment(

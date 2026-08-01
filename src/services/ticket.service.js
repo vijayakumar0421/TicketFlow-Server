@@ -908,6 +908,7 @@ const updateTicket = async (
   return updatedTicket;
 };
 
+
 const addComment = async (
   ticketId,
   userId,
