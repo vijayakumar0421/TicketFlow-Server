@@ -91,6 +91,20 @@ app.get("/api/debug-db", async (req, res) => {
   }
 });
 
+const fs = require("fs");
+
+app.get("/api/debug/uploads", (req, res) => {
+  const uploadPath = path.join(__dirname, "../uploads");
+
+  res.json({
+    uploadPath,
+    exists: fs.existsSync(uploadPath),
+    files: fs.existsSync(uploadPath)
+      ? fs.readdirSync(uploadPath)
+      : [],
+  });
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
