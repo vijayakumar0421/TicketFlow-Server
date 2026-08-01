@@ -97,11 +97,66 @@ exports.getDashboardStats = async (user) => {
     }),
   ]);
 
+
+  
   return {
     totalTickets,
     newTickets,
     inProgressTickets,
     resolvedTickets,
     overdueTickets,
+  };
+};
+
+// ==============================
+// Dashboard Charts
+// ==============================
+exports.getDashboardCharts = async (user) => {
+  const where =
+    user.role === "EMPLOYEE"
+      ? { employeeId: user.id }
+      : {};
+
+  const statusData = await prisma.ticket.groupBy({
+    by: ["status"],
+    where,
+    _count: {
+      status: true,
+    },
+  });
+
+  const priorityData = await prisma.ticket.groupBy({
+    by: ["priority"],
+    where,
+    _count: {
+      priority: true,
+    },
+  });
+
+  const tickets = await prisma.ticket.findMany({
+    where,
+    select: {
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+
+  const monthlyMap = {};
+
+  tickets.forEach((ticket) => {
+    const month = ticket.createdAt.toLocaleString("en-US", {
+      month: "short",
+    });
+
+    monthlyMap[month] =
+      (monthlyMap[month] || 0) + 1;
+  });
+
+  return {
+    status: statusData,
+    priority: priorityData,
+    monthly: monthlyMap,
   };
 };
