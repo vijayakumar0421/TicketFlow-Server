@@ -105,6 +105,36 @@ app.get("/api/debug/uploads", (req, res) => {
   });
 });
 
+app.get("/api/debug/categories", async (req, res) => {
+  const { PrismaClient } = require("@prisma/client");
+  const prisma = new PrismaClient();
+
+  try {
+    const categories = await prisma.category.findMany({
+      include: {
+        Organization: true,
+      },
+      orderBy: [
+        {
+          organizationId: "asc",
+        },
+        {
+          name: "asc",
+        },
+      ],
+    });
+
+    res.json(categories);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({

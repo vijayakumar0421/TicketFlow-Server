@@ -16,6 +16,7 @@ const getCategories = async (user) => {
 };
 
 const createCategory = async (data) => {
+  console.log("Incoming Data:", data);
   const organization =
     await prisma.organization.findUnique({
       where: {
@@ -33,7 +34,7 @@ const createCategory = async (data) => {
       name: data.name,
     },
   });
-
+  console.log("Duplicate Found:", exists);
   if (exists) {
     throw new Error("Category already exists.");
   }
