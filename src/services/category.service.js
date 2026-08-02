@@ -1,17 +1,29 @@
 const prisma = require("../config/prisma");
 
 const getCategories = async (user) => {
+  const where = {
+    isActive: true,
+  };
+
+  // Only non-admin users are restricted
+  if (user.role !== "ADMIN") {
+    where.organizationId =
+      user.Department.organizationId;
+  }
+
   return await prisma.category.findMany({
-    where: {
-      organizationId: user.Department.organizationId,
-      isActive: true,
-    },
+    where,
     include: {
       Organization: true,
     },
-    orderBy: {
-      name: "asc",
-    },
+    orderBy: [
+      {
+        organizationId: "asc",
+      },
+      {
+        name: "asc",
+      },
+    ],
   });
 };
 
